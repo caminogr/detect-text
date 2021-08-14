@@ -6,11 +6,16 @@
   <meta charset="utf-8" />
   <title></title>
   <style type="text/css">
+    #canvas {
+      width: 300px;
+      height: 300px;
+    }
   </style>
 </head>
 <body>
   <h2>OpenCV sample</h2>
   <p id="status">OpenCV.js is loading...</p>
+  <p id="text-container"></p>
   <div>
     <div class="inputoutput">
       <img id="imageSrc" alt="No Image" />
@@ -22,26 +27,38 @@
       <br>
     </form>
     <br>
-    <div class="inputoutput">
-      <canvas id="canvasOutput" ></canvas>
-      <div class="caption">canvasOutput</div>
-    </div>
+    <!-- <div class="inputoutput"> -->
+    <!--   <canvas id="canvasOutput" ></canvas> -->
+    <!--   <div class="caption">canvasOutput</div> -->
+    <!-- </div> -->
   </div>
+  <video id="player" playsinline muted autoplay></video>
+  <canvas id="canvas"></canvas>
     
   <script type="text/javascript">
+    const videoEl = document.getElementById('player');
+    const snapshotCanvas = document.getElementById('canvas');
+    const textContainer = document.getElementById('text-container');
+    (async() => {
+      const stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: { exact: "environment" }}, audio: false});
+//      const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: false});
+      videoEl.srcObject = stream
+      videoEl.play()
+    })()
+
     document.getElementById("button").addEventListener('click', ()=> {
     console.log('Tesseract',Tesseract)
-      grayscale()
+      takeSnapshot()
+      detect()
     })
 
-    let imgElement = document.getElementById('imageSrc');
-    let inputElement = document.getElementById('fileInput');
-    inputElement.addEventListener('change', (e) => {
-      imgElement.src = URL.createObjectURL(e.target.files[0]);
-    }, false);
+//    let imgElement = document.getElementById('imageSrc');
+//    let inputElement = document.getElementById('fileInput');
+//    inputElement.addEventListener('change', (e) => {
+//      imgElement.src = URL.createObjectURL(e.target.files[0]);
+//    }, false);
+//
 
-
-    const rectangles = [ { left: 0, top: 0, width: 500, height: 250 } ];
     const canvas = document.querySelector('canvas');
     const context = canvas.getContext('2d');
     const imageEl = new Image();
@@ -50,7 +67,7 @@
     imageEl.src = imagePath
     imageEl.crossOrigin = "Anonymous";
 //    imageEl.src = 'https://tesseract.projectnaptha.com/img/eng_bw.png'
-    document.body.appendChild(imageEl);
+//    document.body.appendChild(imageEl);
 
     imageEl.onload = () => {
       canvas.width = imageEl.width;
@@ -59,16 +76,22 @@
       context.strokeStyle = "rgb(255, 0, 0)";
     };
 
-    async function grayscale(){
+    function takeSnapshot() {
+      const context = snapshotCanvas.getContext('2d')
+      context.drawImage(player, 0, 0, snapshotCanvas.width, snapshotCanvas.height)
+    }
+
+    async function detect(){
       const rectangle = { left: 0, top: 0, width: 1, height: 20 };
       const worker = Tesseract.createWorker()
       console.log('worker',worker)
       await worker.load();
-      await worker.loadLanguage('eng');
-      await worker.initialize('eng');
-      const { data } = await worker.recognize(imagePath);
+      await worker.loadLanguage('jpn');
+      await worker.initialize('jpn');
+      const { data } = await worker.recognize(snapshotCanvas);
       console.log('data', data);
       console.log('tex', data.text);
+      textContainer.innerHTML = data.text
       data.blocks.forEach((block) => {
         const x0 = block.bbox.x0;
         const y0 = block.bbox.y0;
