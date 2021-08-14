@@ -6,9 +6,6 @@
   <meta charset="utf-8" />
   <title></title>
   <style type="text/css">
-    #canvas {
-      width: 80%;
-    }
   </style>
 </head>
 <body>
@@ -36,6 +33,7 @@
     
   <script type="text/javascript">
     const videoEl = document.getElementById('player');
+    videoEl.style
     const snapshotCanvas = document.getElementById('canvas');
     const textContainer = document.getElementById('text-container');
     (async() => {
@@ -62,6 +60,9 @@
     const context = canvas.getContext('2d');
     const imageEl = new Image();
     const imagePath = './images/text.png'
+//    videoEl.style.width = imageEl.width
+
+//    const imagePath = './images/iphone-image.jpg'
 //    const imagePath = 'https://tesseract.projectnaptha.com/img/eng_bw.png'
     imageEl.src = imagePath
     imageEl.crossOrigin = "Anonymous";
@@ -69,8 +70,8 @@
     document.body.appendChild(imageEl);
 
     imageEl.onload = () => {
-      canvas.width = '300'
-      canvas.height = '300'
+      canvas.width = imageEl.width
+      canvas.height = imageEl.height
       context.drawImage(imageEl, 0, 0, canvas.width, canvas.height);
       context.strokeStyle = "rgb(255, 0, 0)";
     };
