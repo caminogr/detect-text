@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="referrer" content="no-referrer-when-downgrade">
+  <meta charset="utf-8" />
+  <title></title>
+  <style type="text/css">
+  </style>
+</head>
+<body>
+  <h2>OpenCV sample</h2>
+  <p id="status">OpenCV.js is loading...</p>
+  <div>
+    <div class="inputoutput">
+      <img id="imageSrc" alt="No Image" />
+      <div class="caption">imageSrc <input type="file" id="fileInput" name="file" /></div>
+    </div>
+    <br>
+    <form name="test">
+      <input id="button" type="button" value="grayscale">
+      <br>
+    </form>
+    <br>
+    <div class="inputoutput">
+      <canvas id="canvasOutput" ></canvas>
+      <div class="caption">canvasOutput</div>
+    </div>
+  </div>
+    
+  <script type="text/javascript">
+    document.getElementById("button").addEventListener('click', ()=> {
+    console.log('Tesseract',Tesseract)
+      grayscale()
+    })
+
+    let imgElement = document.getElementById('imageSrc');
+    let inputElement = document.getElementById('fileInput');
+    inputElement.addEventListener('change', (e) => {
+      imgElement.src = URL.createObjectURL(e.target.files[0]);
+    }, false);
+
+
+    const rectangles = [ { left: 0, top: 0, width: 500, height: 250 } ];
+    const canvas = document.querySelector('canvas');
+    const context = canvas.getContext('2d');
+    const imageEl = new Image();
+//    const imagePath = './images/text-image.jpeg'
+    const imagePath = 'https://tesseract.projectnaptha.com/img/eng_bw.png'
+    imageEl.src = imagePath
+    imageEl.crossOrigin = "Anonymous";
+//    imageEl.src = 'https://tesseract.projectnaptha.com/img/eng_bw.png'
+    document.body.appendChild(imageEl);
+
+    imageEl.onload = () => {
+      canvas.width = imageEl.width;
+      canvas.height = imageEl.height;
+      context.drawImage(imageEl, 0, 0, canvas.width, canvas.height);
+      context.strokeStyle = "rgb(255, 0, 0)";
+    };
+
+    async function grayscale(){
+      const rectangle = { left: 0, top: 0, width: 1, height: 20 };
+      const worker = Tesseract.createWorker()
+      console.log('worker',worker)
+      await worker.load();
+      await worker.loadLanguage('eng');
+      await worker.initialize('eng');
+      const { data } = await worker.recognize(imagePath);
+      console.log('data', data);
+      console.log('tex', data.text);
+      data.blocks.forEach((block) => {
+        const x0 = block.bbox.x0;
+        const y0 = block.bbox.y0;
+        const x1 = block.bbox.x1;
+        const y1 = block.bbox.y1;
+        context.beginPath(x0, y0);
+//        context.moveTo(x0,y0);
+        context.lineTo(x1, y0);
+        context.lineTo(x1, y1);
+        context.lineTo(x0, y1);
+        context.lineTo(x0, y0);
+        context.closePath();
+        context.stroke();
+      })
+      await worker.terminate();
+
+      const src = cv.imread(imageEl);
+      const gray = new cv.Mat();
+      const faces = new cv.RectVector();
+      const faceCascade = new cv.CascadeClassifier()
+  //    const eyeCascade = new cv.CascadeClassifier();
+      cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
+
+//      const faceCascadeFile = './haarcascade_frontalface_default.xml'
+//      new Utils().createFileFromUrl(faceCascadeFile, faceCascadeFile, () => {
+//
+//        faceCascade.load(faceCascadeFile);
+//        const mSize = new cv.Size(0, 0);
+//        faceCascade.detectMultiScale(gray, faces, 1.1, 3, 0, mSize, mSize);
+//
+//
+//        for (let i = 0; i < faces.size(); ++i) {
+//          let roiGray = gray.roi(faces.get(i));
+//          let roiSrc = src.roi(faces.get(i));
+//          let point1 = new cv.Point(faces.get(i).x, faces.get(i).y);
+//          let point2 = new cv.Point(faces.get(i).x + faces.get(i).width, faces.get(i).y + faces.get(i).height);
+//          cv.rectangle(src, point1, point2, [255, 0, 0, 255]);
+//          //eyeCascade.detectMultiScale(roiGray, eyes);
+////            for (let j = 0; j < eyes.size(); ++j) {
+////              let point1 = new cv.Point(eyes.get(j).x, eyes.get(j).y);
+////              let point2 = new cv.Point(eyes.get(j).x + eyes.get(j).width, eyes.get(j).y + eyes.get(j).height);
+////              cv.rectangle(roiSrc, point1, point2, [0, 0, 255, 255]);
+////            }
+//          roiGray.delete();
+//          roiSrc.delete();
+//        }
+//
+//        cv.imshow('canvasOutput', src);
+//        src.delete();
+//      })
+    }
+
+
+    function onOpenCvReady() {
+      document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+    }
+</script>
+<script async onload="onOpenCvReady();" type="text/javascript" src="https://docs.opencv.org/4.5.0/opencv.js"></script>
+<script src="https://docs.opencv.org/master/utils.js"></script>
+<script src='https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js'></script>
+<!-- <script async onload="onOpenCvReady();" type="text/javascript" src="./opencv/build_js/bin/opencv_js.js"></script> -->
+</body>
+</html>
